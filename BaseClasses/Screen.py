@@ -20,7 +20,6 @@ class Screen(ABC):
     def create_surface(self) -> pygame.Surface:
         surface = pygame.Surface(size)
 
-        self.sprites.update()
         self.sprites.draw(surface)
 
         return surface
@@ -32,4 +31,11 @@ class Screen(ABC):
 
     def update(self):
         surface = self.create_surface()
+        self.pending_updates()
         self.screen.blit(surface, (0, 0))
+
+    def notify(self, event: pygame.event):
+        pass
+
+    def pending_updates(self):
+        pass

@@ -25,6 +25,7 @@ class Game:
     def loop(self) -> None:
         """Обработка событий"""
         running = True
+        clock = pygame.time.Clock()
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -33,8 +34,11 @@ class Game:
                     # Делегация обработки события текущему экрану
                     self.click_sound.play()
                     self.current_screen.notify_click(event.pos)
+                else:
+                    self.current_screen.notify(event)
             self.current_screen.update()
             pygame.display.flip()
+            clock.tick(60)
 
 
 if __name__ == '__main__':
