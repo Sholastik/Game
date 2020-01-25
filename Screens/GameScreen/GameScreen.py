@@ -2,6 +2,7 @@ import pygame
 
 from BaseClasses.Screen import Screen
 from Screens.GameScreen.BackgroundSprite import BackgroundSprite
+from Tools.Tools import play_music
 
 
 class GameScreen(Screen):
@@ -15,6 +16,8 @@ class GameScreen(Screen):
 
         super().__init__(screen, parent, sprites)
         self.state = {"horizontalMovement": None}
+
+        play_music("GameScreen/music.wav", loop=True)
 
     def notify(self, event: pygame.event):
         if event.type == pygame.KEYDOWN:
