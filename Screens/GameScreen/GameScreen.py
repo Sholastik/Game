@@ -1,10 +1,12 @@
 import pygame
 
 from BaseClasses.Screen import Screen
-from Tools.Constants import size
+from Screens.GameScreen.BackgroundSprite import BackgroundSprite
 
 
 class GameScreen(Screen):
-    @staticmethod
-    def create_surface() -> pygame.Surface:
-        return pygame.Surface(size)
+    def __init__(self, screen: pygame.display, parent):
+        sprites = pygame.sprite.Group(
+            BackgroundSprite(self),
+        )
+        super().__init__(screen, parent, sprites)

@@ -33,6 +33,7 @@ class Game:
                     # Делегация обработки события текущему экрану
                     self.click_sound.play()
                     self.current_screen.notify_click(event.pos)
+            self.current_screen.update()
             pygame.display.flip()
 
 
