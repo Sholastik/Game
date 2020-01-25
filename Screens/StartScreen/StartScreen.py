@@ -1,9 +1,10 @@
 import pygame
 
 from BaseClasses.Screen import Screen
-from StartScreen.BackgroundSprite import BackgroundSprite
-from StartScreen.StartButtonSprite import StartButtonSprite
-from StartScreen.TitleSprite import TitleSprite
+from Screens.GameScreen.GameScreen import GameScreen
+from Screens.StartScreen.BackgroundSprite import BackgroundSprite
+from Screens.StartScreen.StartButtonSprite import StartButtonSprite
+from Screens.StartScreen.TitleSprite import TitleSprite
 from Tools.Constants import size
 from Tools.Tools import play_music, stop_music
 
@@ -29,3 +30,4 @@ class StartScreen(Screen):
     def load_game(self):
         """Загрузка игры"""
         stop_music()
+        self.parent.change_screen(GameScreen(self.parent.screen, self.parent))

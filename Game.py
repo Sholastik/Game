@@ -1,7 +1,7 @@
 import pygame
 
 import BaseClasses.Screen
-from StartScreen.StartScreen import StartScreen
+from Screens.StartScreen.StartScreen import StartScreen
 from Tools.Constants import size
 from Tools.Tools import create_sound
 

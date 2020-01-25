@@ -7,6 +7,6 @@ class StartButtonSprite(Sprite):
         super(StartButtonSprite, self).__init__("StartScreen/start_button.png", parent, left=640, top=480, center=True)
 
     def on_click(self) -> None:
-        from StartScreen.StartScreen import StartScreen
+        from Screens.StartScreen.StartScreen import StartScreen
         self.parent: StartScreen
         self.parent.load_game()
