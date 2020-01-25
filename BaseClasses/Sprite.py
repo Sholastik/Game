@@ -10,7 +10,7 @@ class Sprite(pygame.sprite.Sprite, ABC):
     """Базовый класс кастомного спрайта"""
 
     def __init__(self, path: str, parent: Screen, group: pygame.sprite.Group = None, left: int = 0, top: int = 0,
-                 center: bool = False, transparent: bool = False) -> None:
+                 center: bool = False) -> None:
         """
         Создание кастомного sprite
         :param path: Путь до картинки
@@ -19,12 +19,11 @@ class Sprite(pygame.sprite.Sprite, ABC):
         :param left: Смещение по горизонтальной оси относительно левого края экрана
         :param top: Смещение по вертикальной оси относительно верхнего края экрана
         :param center: Выровнять картинку с учетом её ширины/высоты
-        :param transparent: Прозрачность фона
         """
 
         super().__init__(group or [])
         self.parent = parent
-        self.image = load_image(path, -1 if transparent else None)
+        self.image = load_image(path)
         self.rect = self.image.get_rect()
         self.rect.left = left
         self.rect.top = top

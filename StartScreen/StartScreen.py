@@ -3,6 +3,7 @@ import pygame
 from BaseClasses.Screen import Screen
 from StartScreen.BackgroundSprite import BackgroundSprite
 from StartScreen.StartButtonSprite import StartButtonSprite
+from StartScreen.TitleSprite import TitleSprite
 from Tools.Constants import size
 from Tools.Tools import play_music, stop_music
 
@@ -14,10 +15,11 @@ class StartScreen(Screen):
 
     def create_surface(self) -> pygame.Surface:
         surface = pygame.Surface(size)
-        self.sprites = pygame.sprite.Group(StartButtonSprite(self))
-
-        bg = BackgroundSprite(self)
-        bg.draw(surface)
+        self.sprites = pygame.sprite.Group(
+            BackgroundSprite(self),
+            StartButtonSprite(self),
+            TitleSprite(self)
+        )
 
         for sprite in self.sprites:
             sprite.draw(surface)
