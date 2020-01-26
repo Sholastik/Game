@@ -1,15 +1,15 @@
 from BaseClasses.Screen import Screen
 from BaseClasses.Sprite import Sprite
+from Tools.Constants import HEIGHT, PLATFORM_HEIGHT, PLATFORMS_PATH
 
 
 class Tree(Sprite):
-    def __init__(self, path: str, parent: Screen, x, y):
-        super().__init__("GameScreen/Platforms/" + path, parent)
-        self.rect.left = x
-        self.rect.top = 720 - y - self.rect.height - 128
+    """Sprite дерева"""
 
-    def on_click(self) -> None:
-        pass
+    def __init__(self, path: str, parent: Screen, x, y):
+        super().__init__(f"{PLATFORMS_PATH}/{path}", parent)
+        self.rect.left = x
+        self.rect.top = HEIGHT - y - self.rect.height - PLATFORM_HEIGHT
 
     def update(self, delta):
         self.rect.left += delta

@@ -1,40 +1,26 @@
 from BaseClasses.Screen import Screen
 from BaseClasses.Sprite import Sprite
-from Tools.Tools import load_image
-
-LEFT = {"Attack": [], "Died": [], "Run": [], "Idle": []}
-RIGHT = {"Attack": [], "Died": [], "Run": [], "Idle": []}
+from Tools.Constants import *
 
 
 class Character(Sprite):
-    def __init__(self, parent: Screen):
-        super().__init__("GameScreen/Character/Right/Idle.png", parent, left=640, top=360, center=True)
-        for i in range(15):
-            LEFT["Attack"].append(load_image(f"GameScreen/Character/Left/Attack/{i}.png"))
-            RIGHT["Attack"].append(load_image(f"GameScreen/Character/Right/Attack/{i}.png"))
-        for i in range(30):
-            LEFT["Died"].append(load_image(f"GameScreen/Character/Left/Died/{i}.png"))
-            RIGHT["Died"].append(load_image(f"GameScreen/Character/Right/Died/{i}.png"))
-        for i in range(15):
-            LEFT["Run"].append(load_image(f"GameScreen/Character/Left/Run/{i}.png"))
-            RIGHT["Run"].append(load_image(f"GameScreen/Character/Right/Run/{i}.png"))
-        LEFT["Idle"].append(load_image(f"GameScreen/Character/Left/Idle.png"))
-        RIGHT["Idle"].append(load_image(f"GameScreen/Character/Right/Idle.png"))
+    """Sprite персонажа"""
 
-        self.item = "Idle"
+    def __init__(self, parent: Screen):
+        super().__init__(f"{CHAR_PATH}/{RIGHT}/{IDLE}/0.png", parent, left=WIDTH // 2, top=HEIGHT // 2, center=True)
+        self.item = IDLE
         self.right = True
         self.frame = -1
 
-    def on_click(self) -> None:
-        pass
-
     def update_image(self):
+        """Обновление анимации"""
         if self.right:
-            self.frame = (self.frame + 1) % len(RIGHT[self.item])
-            self.image = RIGHT[self.item][self.frame]
+            self.frame = (self.frame + 1) % len(CHAR_RIGHT[self.item])
+            self.image = CHAR_RIGHT[self.item][self.frame]
         else:
-            self.frame = (self.frame + 1) % len(LEFT[self.item])
-            self.image = LEFT[self.item][self.frame]
+            self.frame = (self.frame + 1) % len(CHAR_LEFT[self.item])
+            self.image = CHAR_LEFT[self.item][self.frame]
 
     def update_pos(self, delta_y):
+        """Перемещение по вертикали"""
         self.rect.top += delta_y

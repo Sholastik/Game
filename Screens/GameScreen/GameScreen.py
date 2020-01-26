@@ -4,79 +4,102 @@ from BaseClasses.Screen import Screen
 from Screens.GameScreen.BackgroundSprite import BackgroundSprite
 from Screens.GameScreen.Character import Character
 from Screens.GameScreen.World import World
-from Tools.Constants import size
+from Tools.Constants import *
 from Tools.Tools import play_music
 
 
 class GameScreen(Screen):
-    def __init__(self, screen: pygame.display, parent):
-        sprites = pygame.sprite.Group()
-        self.sprites_dict = dict()
+    """Основной игровой экран"""
 
-        bg = BackgroundSprite(self)
-        sprites.add(bg)
-        self.sprites_dict["background"] = bg
+    def __init__(self, screen: pygame.display, parent) -> None:
+        self.bg = BackgroundSprite(self)
+        super().__init__(screen, parent, pygame.sprite.Group(self.bg))
 
         self.char = Character(self)
-
-        super().__init__(screen, parent, sprites)
-        self.state = {"horizontalMovement": None, "falling": False, "jump": 0, "attack": 0}
         self.world = World()
+
+        # Игровые события
+        self.state = {HORIZONTAL_MOVEMENT: None, FALLING: False, JUMP: 0, ATTACK: 0}
+
+        # Блокировка событий
         self.locked = False
 
-        play_music("GameScreen/music.wav", loop=True)
+        play_music(GAME_MUSIC_PATH, loop=True)
 
-    def notify(self, event: pygame.event):
+    def notify(self, event: pygame.event) -> None:
+        """Получение событий от Game"""
+
+        # Проверяем, что события не заблокированы
         if self.locked:
             return
+
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                self.state["horizontalMovement"] = self.char.right = event.key == pygame.K_RIGHT
-                self.char.item = "Run"
-                self.char.frame = -1
-            elif event.key == pygame.K_UP and self.state["jump"] == 0 and not self.state["falling"]:
-                self.state["jump"] = 20
-                self.char.item = "Run"
-                self.char.frame = -1
+                self.state[HORIZONTAL_MOVEMENT] = self.char.right = event.key == pygame.K_RIGHT
+                self.char.item = RUN
+            elif event.key == pygame.K_UP and self.state[JUMP] == 0 and not self.state[FALLING]:
+                self.state[JUMP] = JUMP_DURATION
+                self.char.item = RUN
             elif event.key == pygame.K_SPACE:
-                self.state["attack"] = 15
-                self.char.item = "Attack"
-                self.char.frame = -1
-                self.state["horizontalMovement"] = None
+                self.state[ATTACK] = ATTACK_COUNT
+                self.char.item = ATTACK
+                self.state[HORIZONTAL_MOVEMENT] = None
+            else:
+                return
+            self.char.frame = -1
         elif event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                self.state["horizontalMovement"] = None
+                self.state[HORIZONTAL_MOVEMENT] = None
 
-    def pending_updates(self):
+    def pending_updates(self) -> None:
+        """Выполнение необходимых изменений"""
+
+        # Проверяем, что события не заблокированы
         if not self.locked:
-            self.state["falling"] = self.world.should_fall(self.char)
-            if self.state["horizontalMovement"] is not None:
-                delta = 7
-                if self.state["horizontalMovement"]:
+
+            if self.state[HORIZONTAL_MOVEMENT] is not None:
+                delta = RUN_SPEED
+                if self.state[HORIZONTAL_MOVEMENT]:
                     delta = -delta
+
+                # Если можем идти в данном направлении, то сдвигаем мир и фон
                 if self.world.can_go_there(self.char, delta):
-                    self.sprites_dict["background"].update(delta)
+                    self.bg.update(delta)
                     self.world.update(delta)
-            if self.state["jump"] > 0:
-                self.state["jump"] -= 1
-                self.char.update_pos(-self.state["jump"] * 3 // 2)
-            elif self.state["falling"]:
-                self.char.update_pos(10)
-            elif self.state["horizontalMovement"] is None and self.state["attack"] == 0:
-                self.char.item = "Idle"
-            self.check_char()
-            if self.state["attack"] > 0:
-                self.state["attack"] -= 1
+
+            # Проверяем отсутствие опоры под персонажем
+            self.state[FALLING] = self.world.should_fall(self.char)
+
+            if self.state[JUMP] > 0:
+                # Перемещаем персонажа
+                self.state[JUMP] -= 1
+                self.char.update_pos(self.state[JUMP] * JUMP_ACCELERATION)
+
+            elif self.state[FALLING]:
+                self.char.update_pos(FALLING_SPEED)
+
+            # Если персонаж не двигается
+            elif self.state[HORIZONTAL_MOVEMENT] is None and self.state[ATTACK] == 0:
+                self.char.item = IDLE
+
+            self.check_character_in_water()
+
+            if self.state[ATTACK] > 0:
+                self.state[ATTACK] -= 1
+        # Обновляем анимацию
         self.char.update_image()
 
-    def check_char(self):
+    def check_character_in_water(self) -> None:
+        """Проверка на то, что персонаж в воде"""
         if self.world.in_water(self.char):
+            # Блокируем события и меняем анимацию
             self.locked = True
-            self.char.item = "Died"
+            self.char.item = DIED
             self.char.frame = -1
 
     def create_surface(self) -> pygame.Surface:
-        surface = pygame.Surface(size)
+        """Создание экрана"""
+        surface = pygame.Surface(SIZE)
 
         self.sprites.draw(surface)
         self.world.draw(surface)

@@ -1,1 +1,77 @@
-size = width, height = 1280, 720
+SIZE = WIDTH, HEIGHT = 1280, 720
+FPS = 60
+VOLUME = 3 / 100
+
+IDLE = "Idle"
+RUN = "Run"
+DIED = "Died"
+ATTACK = "Attack"
+RIGHT = "Right"
+LEFT = "Left"
+HORIZONTAL_MOVEMENT = "horizontalMovement"
+JUMP = "jump"
+FALLING = "falling"
+
+ATTACK_COUNT = 15
+RUN_COUNT = 15
+DIED_COUNT = 30
+IDLE_COUNT = 1
+
+JUMP_DURATION = 20
+RUN_SPEED = 7
+FALLING_SPEED = 10
+JUMP_ACCELERATION = -3 / 2
+
+LEVEL_WIDTH = 200 + 20
+PROTECTED_LEFT = 10
+PROTECTED_RIGHT = 15
+MIN_WATER_LENGTH = 1
+MAX_WATER_LENGTH = 2
+MIN_WATER_COUNT = LEVEL_WIDTH // 10
+MAX_WATER_COUNT = LEVEL_WIDTH // 4
+MIN_MOUNTAINS_COUNT = 4
+MAX_MOUNTAINS_COUNT = 7
+MIN_MOUNTAINS_LENGTH = 3
+MAX_MOUNTAINS_LENGTH = 8
+MOUNTAINS_HEIGHT = 3
+MIN_ADDITIONAL_FLOORS_COUNT = 40
+MAX_ADDITIONAL_FLOORS_COUNT = 100
+AVAILABLE_FOR_ADDITIONAL_FLOOR = (1, 2, 4)
+MAX_ADDITIONAL_FLOORS_LENGTH = 7
+MIN_ADDITIONAL_FLOORS_LENGTH = 2
+LEVEL_HEIGHT = 5
+MIN_TREE = 2
+MAX_TREE = 8
+PLATFORM_WIDTH = PLATFORM_HEIGHT = 128
+INFELICITY = 20
+POSSIBILITY = 35
+
+ASSETS_PATH = "Assets"
+CHAR_PATH = "GameScreen/Character"
+CLICK_SOUND_PATH = "click_sound.wav"
+TITLE_PATH = "StartScreen/title.png"
+MENU_MUSIC_PATH = "StartScreen/menu_music.mp3"
+START_BUTTON_PATH = "StartScreen/start_button.png"
+START_BACKGROUND_PATH = "StartScreen/bg.png"
+PLATFORMS_PATH = "GameScreen/Platforms"
+GAME_BACKGROUND_PATH = "GameScreen/bg.png"
+GAME_MUSIC_PATH = "GameScreen/music.wav"
+
+FLOOR_MIDDLE_PATH = "floor_middle.png"
+FLOOR_LEFT_PATH = "floor_left.png"
+FLOOR_RIGHT_PATH = "floor_right.png"
+WATER_PATH = "water.png"
+MOUNTAIN_PATH = "mountain.png"
+MOUNTAIN_LEFT_PATH = "mountain_left.png"
+MOUNTAIN_RIGHT_PATH = "mountain_right.png"
+ASSISTANCE_PATH = "edged.png"
+DOUBLE_MIDDLE_PATH = "double_middle.png"
+MIDDLE_PATH = "middle.png"
+LEFT_PATH = "left.png"
+DOUBLE_LEFT_PATH = "double_left.png"
+RIGHT_PATH = "right.png"
+DOUBLE_RIGHT_PATH = "double_right.png"
+TREE_FORMAT = "tree_{}.png"
+
+CHAR_LEFT = {ATTACK: [], DIED: [], RUN: [], IDLE: []}
+CHAR_RIGHT = {ATTACK: [], DIED: [], RUN: [], IDLE: []}

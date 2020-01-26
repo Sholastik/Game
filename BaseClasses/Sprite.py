@@ -1,12 +1,10 @@
-from abc import ABC, abstractmethod
-
 import pygame
 
 from BaseClasses.Screen import Screen
 from Tools.Tools import load_image
 
 
-class Sprite(pygame.sprite.Sprite, ABC):
+class Sprite(pygame.sprite.Sprite):
     """Базовый класс кастомного спрайта"""
 
     def __init__(self, path: str, parent: Screen, group: pygame.sprite.Group = None, left: int = 0, top: int = 0,
@@ -35,6 +33,5 @@ class Sprite(pygame.sprite.Sprite, ABC):
     def draw(self, screen: pygame.Surface) -> None:
         screen.blit(self.image, self.rect)
 
-    @abstractmethod
     def on_click(self) -> None:
         pass

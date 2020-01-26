@@ -2,195 +2,266 @@ from random import randint, choice
 
 import pygame
 
+from BaseClasses.Sprite import Sprite
 from Screens.GameScreen.Platform import Platform
 from Screens.GameScreen.Tree import Tree
-
-FLOOR_MIDDLE = "floor_middle.png"
-FLOOR_LEFT = "floor_left.png"
-FLOOR_RIGHT = "floor_right.png"
-WATER = "water.png"
-MOUNTAIN = "mountain.png"
-MOUNTAIN_LEFT = "mountain_left.png"
-MOUNTAIN_RIGHT = "mountain_right.png"
-ASSISTANCE = "edged.png"
-DOUBLE_MIDDLE = "double_middle.png"
-MIDDLE = "middle.png"
-LEFT = "left.png"
-DOUBLE_LEFT = "double_left.png"
-RIGHT = "right.png"
-DOUBLE_RIGHT = "double_right.png"
+from Tools.Constants import *
 
 
 class World:
+    """Класс, управляющий игровым миром"""
+
     def __init__(self) -> None:
-        self.width = 200 + 20
         self.world = None
-        self.next = [[[None, None] for _ in range(self.width)] for _ in range(5)]
+        self.coord = 0
+        self.next = [[[None, None] for _ in range(LEVEL_WIDTH)] for _ in range(5)]
+
+        self.platforms = pygame.sprite.Group()
+        self.water = pygame.sprite.Group()
+        self.trees = pygame.sprite.Group()
+
+        self.generate_world()
+        self.change_layer()
+
+    def generate_world(self) -> None:
+        """Генерация игровых обьектов"""
         self.generate_mountains(self.next)
         self.generate_floor(self.next[0])
         self.generate_assistant_floor(self.next)
         self.generate_additional_floors(self.next)
         self.add_trees(self.next)
-        self.platforms = pygame.sprite.Group()
-        self.water = pygame.sprite.Group()
-        self.change_layer()
         self.coord = 0
 
-    def generate_floor(self, world) -> None:
-        for i in range(randint(self.width // 10, self.width // 4)):
-            pos = randint(10, self.width - 15)
-            length = randint(1, max(2, min(self.width - pos - 15, 2)))
+    @staticmethod
+    def generate_floor(world: list) -> None:
+        """Генерация самого нижнего уровня"""
+
+        # Заполнение водой
+        for i in range(randint(MIN_WATER_COUNT, MAX_WATER_COUNT)):
+            pos = randint(PROTECTED_LEFT, LEVEL_WIDTH - PROTECTED_RIGHT)
+
+            length = randint(MIN_WATER_LENGTH,
+                             max(MIN_WATER_LENGTH,
+                                 min(LEVEL_WIDTH - pos - PROTECTED_RIGHT, MAX_WATER_LENGTH)
+                                 )
+                             )
+
+            # Проверка что выбранные клетки не заняты
             if all(map(lambda x: x[0] is None, world[pos - 1:pos + length + 1])):
                 for index in range(pos, pos + length):
-                    world[index][0] = WATER
+                    world[index][0] = WATER_PATH
 
-        for i in range(1, self.width - 1):
+        # Заполнение оставшихся клеток платформами
+        for i in range(1, LEVEL_WIDTH - 1):
             if world[i][0] is None:
-                prev = world[i - 1] == WATER
-                next = world[i + 1] == WATER
-                if prev ^ next:
-                    if prev:
-                        world[i][0] = FLOOR_RIGHT
+                # Проверяем, нужно ли выбрать платформу с гладкими углами
+                prev_cell = world[i - 1] == WATER_PATH
+                next_cell = world[i + 1] == WATER_PATH
+
+                if prev_cell ^ next_cell:
+                    if prev_cell:
+                        world[i][0] = FLOOR_RIGHT_PATH
                     else:
-                        world[i][0] = FLOOR_LEFT
+                        world[i][0] = FLOOR_LEFT_PATH
                 else:
-                    world[i][0] = FLOOR_MIDDLE
-        world[0][0] = FLOOR_MIDDLE
-        world[self.width - 1][0] = FLOOR_MIDDLE
+                    world[i][0] = FLOOR_MIDDLE_PATH
 
-    def generate_mountains(self, world) -> None:
-        cnt = randint(4, 7)
+        # Первая и последняя платформа должна быть без углов
+        world[0][0] = FLOOR_MIDDLE_PATH
+        world[LEVEL_WIDTH - 1][0] = FLOOR_MIDDLE_PATH
+
+    @staticmethod
+    def generate_mountains(world: list) -> None:
+        """Генерация гор"""
+
+        cnt = randint(MIN_MOUNTAINS_COUNT, MAX_MOUNTAINS_COUNT)
         while cnt != 0:
-            pos = randint(12, self.width - 18)
-            length = randint(3, min(self.width - 13 - pos, 8))
-            if all(map(lambda x: x[0] is None, world[2][pos - 1: pos + length + 1])):
-                for index in range(pos, pos + length):
-                    world[0][index][0] = world[1][index][0] = world[2][index][0] = MOUNTAIN
-                    world[3][index][0] = FLOOR_MIDDLE
-                world[3][pos - 1][0] = MOUNTAIN_LEFT
-                world[3][pos + length][0] = MOUNTAIN_RIGHT
-            else:
-                cnt += 1
-            cnt -= 1
+            pos = randint(PROTECTED_LEFT + MIN_MOUNTAINS_COUNT,
+                          LEVEL_WIDTH - PROTECTED_RIGHT - MIN_MOUNTAINS_LENGTH)
 
-    def generate_assistant_floor(self, world) -> None:
+            length = randint(MIN_MOUNTAINS_COUNT,
+                             min(LEVEL_WIDTH - PROTECTED_RIGHT - pos, MAX_MOUNTAINS_COUNT)
+                             )
+
+            # Проверка, что клетки не заняты
+            if all(map(lambda x: x[0] is None, world[MOUNTAINS_HEIGHT - 1][pos - 1: pos + length + 1])):
+                for index in range(pos, pos + length):
+                    for layer in range(MOUNTAINS_HEIGHT):
+                        world[layer][index][0] = MOUNTAIN_PATH
+                    world[MOUNTAINS_HEIGHT][index][0] = FLOOR_MIDDLE_PATH
+
+                # Добавление платформ с углами
+                world[MOUNTAINS_HEIGHT][pos - 1][0] = MOUNTAIN_LEFT_PATH
+                world[MOUNTAINS_HEIGHT][pos + length][0] = MOUNTAIN_RIGHT_PATH
+                cnt -= 1
+
+    @staticmethod
+    def generate_assistant_floor(world: list) -> None:
+        """Генерация платформ, помогающих взобраться на гору"""
+
         add = True
-        for i in range(0, self.width - 10):
+        for i in range(0, LEVEL_WIDTH - PROTECTED_RIGHT):
+            # Если добавили одну вспомогательную платформу, то больше не нужно
             if add:
-                if world[3][i][0] is not None:
-                    world[2][i - 2][0] = ASSISTANCE
+                if world[MOUNTAINS_HEIGHT][i][0] is not None:
+                    world[MOUNTAINS_HEIGHT - 1][i - 2][0] = ASSISTANCE_PATH
                     add = False
-            elif world[3][i][0] is None:
+            elif world[MOUNTAINS_HEIGHT][i][0] is None:
                 add = True
 
-    def generate_additional_floors(self, world) -> None:
-        for i in range(randint(40, 100)):
-            layer = choice((1, 2, 4))
-            pos = randint(11, self.width - 17 - 5)
-            length = randint(2, 7)
+    @staticmethod
+    def generate_additional_floors(world: list) -> None:
+        """Генерация дополнительных платформ"""
+
+        for i in range(randint(MIN_ADDITIONAL_FLOORS_COUNT, MAX_ADDITIONAL_FLOORS_COUNT)):
+            layer = choice(AVAILABLE_FOR_ADDITIONAL_FLOOR)
+            pos = randint(PROTECTED_LEFT + 1, LEVEL_WIDTH - PROTECTED_RIGHT - MAX_ADDITIONAL_FLOORS_LENGTH)
+            length = randint(MIN_ADDITIONAL_FLOORS_LENGTH, MAX_ADDITIONAL_FLOORS_LENGTH)
+
+            # Выбор из сдвоенной/обычной платформы-полублока
             double = choice((True, False))
+
+            # Проверка, что клетки не заняты
             if all(map(lambda x: x[0] is None, world[layer][pos - 1: pos + length + 1])) \
                     and all(map(lambda x: x[0] is None, world[layer - 1][pos - 1: pos + length + 1])):
+
                 for index in range(pos, pos + length):
                     if double:
-                        world[layer][index][0] = DOUBLE_MIDDLE
+                        world[layer][index][0] = DOUBLE_MIDDLE_PATH
                     else:
-                        world[layer][index][0] = MIDDLE
+                        world[layer][index][0] = MIDDLE_PATH
+
+                # Добавление платформ с углами
                 if double:
-                    world[layer][pos][0] = DOUBLE_LEFT
-                    world[layer][pos + length][0] = DOUBLE_RIGHT
+                    world[layer][pos][0] = DOUBLE_LEFT_PATH
+                    world[layer][pos + length][0] = DOUBLE_RIGHT_PATH
                 else:
-                    world[layer][pos][0] = LEFT
-                    world[layer][pos + length][0] = RIGHT
+                    world[layer][pos][0] = LEFT_PATH
+                    world[layer][pos + length][0] = RIGHT_PATH
 
-    def add_trees(self, world):
-        for i in range(5):
-            for j in range(self.width):
-                if world[i][j][0] not in (None, WATER, MOUNTAIN):
+    @staticmethod
+    def add_trees(world: list) -> None:
+        """Добавление декораций"""
+
+        for i in range(LEVEL_HEIGHT):
+            for j in range(LEVEL_WIDTH):
+                if world[i][j][0] not in (None, WATER_PATH, MOUNTAIN_PATH):
                     val = randint(1, 100)
-                    if val >= 35:
-                        world[i][j][1] = f"tree_{randint(2, 7 if i == 4 else 8)}.png"
+                    if val >= POSSIBILITY:
+                        world[i][j][1] = TREE_FORMAT.format(randint(MIN_TREE, MAX_TREE))
 
-    def change_layer(self):
+    def change_layer(self) -> None:
+        """Замена прошлого сегмента уровня на следующий сегмент"""
         self.world = self.next
-        self.next = [[[None, None] for _ in range(self.width)] for _ in range(6)]
-        self.generate_mountains(self.next)
-        self.generate_floor(self.next[0])
-        self.generate_assistant_floor(self.next)
-        self.generate_additional_floors(self.next)
-        self.add_trees(self.next)
+        self.next = [[[None, None] for _ in range(LEVEL_WIDTH)] for _ in range(LEVEL_HEIGHT)]
+        self.generate_world()
         self.create_sprites(self.world)
-        self.coord = 0
 
-    def create_sprites(self, world):
+    def create_sprites(self, world: list) -> None:
+        """Создание sprite-ов"""
         self.platforms = pygame.sprite.Group()
         self.water = pygame.sprite.Group()
-        for j in range(self.width):
-            for i in range(5):
-                if world[i][j][1] is not None:
-                    self.platforms.add(Tree(world[i][j][1], None, j * 128, i * 128))
-                if world[i][j][0] is not None:
-                    if world[i][j][0] == WATER:
-                        self.water.add(Platform(world[i][j][0], None, j * 128, i * 128))
-                    else:
-                        self.platforms.add(Platform(world[i][j][0], None, j * 128, i * 128))
+        self.trees = pygame.sprite.Group()
 
-    def update(self, delta):
-        for sprite in self.platforms:
-            sprite.update(delta)
-        for sprite in self.water:
-            sprite.update(delta)
+        for j in range(LEVEL_WIDTH):
+            for i in range(LEVEL_HEIGHT):
+                x = j * PLATFORM_WIDTH
+                y = i * PLATFORM_HEIGHT
+                if world[i][j][1] is not None:
+                    self.trees.add(Tree(world[i][j][1], None, x, y))
+                if world[i][j][0] is not None:
+                    if world[i][j][0] == WATER_PATH:
+                        self.water.add(Platform(world[i][j][0], None, x, y))
+                    else:
+                        self.platforms.add(Platform(world[i][j][0], None, x, y))
+
+    def update(self, delta: int) -> None:
+        """Передвижение sprite-ов"""
+
+        self.platforms.update(delta)
+        self.water.update(delta)
+        self.trees.update(delta)
+
+        # Обновляем сдивг относительно начала
         self.coord += delta
-        if self.coord <= -(self.width - 10) * 128:
+
+        # Проверяем, нужно ли заменить сегмент мира на новый
+        if self.coord <= -(LEVEL_WIDTH - PROTECTED_RIGHT) * PLATFORM_WIDTH:
             self.change_layer()
 
-    def draw(self, screen):
-        for i in self.platforms:
-            if i.rect.left <= 1280:
-                i.draw(screen)
-            else:
-                break
-        for i in self.water:
-            if i.rect.left <= 1280:
-                i.draw(screen)
+    def draw(self, screen: pygame.Surface) -> None:
+        """
+        Рисование sprite-ов
+        Рисуются только те, которые сейчас видны на экране
+        """
+        self.draw_group(self.platforms, screen)
+        self.draw_group(self.water, screen)
+        self.draw_group(self.trees, screen)
+
+    @staticmethod
+    def draw_group(group: pygame.sprite.Group, screen: pygame.Surface) -> None:
+        """Отрисовка группы видимых sprite-ов"""
+        for sprite in group:
+            if sprite.rect.left < -PLATFORM_WIDTH:
+                continue
+            if sprite.rect.left <= WIDTH:
+                sprite.draw(screen)
             else:
                 break
 
-    def in_water(self, mask):
+    def in_water(self, char: Sprite) -> bool:
+        """Проверка на то, что игрок попал в воду"""
         for sprite in self.water:
-            if sprite.rect.left > 1280:
-                return False
-            if pygame.sprite.collide_mask(mask, sprite):
+            if sprite.rect.left < -PLATFORM_WIDTH:
+                continue
+            if sprite.rect.left > WIDTH:
+                break
+            if pygame.sprite.collide_mask(char, sprite):
                 return True
         return False
 
-    def should_fall(self, char):
+    def should_fall(self, char: Sprite) -> bool:
+        """Проверка на отсутствие платформы под игроком"""
         for sprite in self.platforms:
-            if sprite.rect.left > 1280:
-                break
             if sprite.rect.left < 0:
                 continue
-            if not (sprite.rect.left <= char.rect.left + 60 <= sprite.rect.left + sprite.rect.width):
-                continue
-            if type(sprite) is not Tree:
-                if abs(sprite.rect.top - 64 - char.rect.top) <= 20:
+            if sprite.rect.left > WIDTH:
+                break
+            # Проверяем, что игрок в пределах платформы по оси OX
+            if sprite.rect.left <= char.rect.left + char.rect.width // 2 <= sprite.rect.right:
+                # Проверяем, что игрок в пределах платформы по оси OY
+                if abs(sprite.rect.top - char.rect.height // 2 - char.rect.top) <= INFELICITY:
                     return False
         return True
 
-    def can_go_there(self, char, delta):
+    def can_go_there(self, char: Sprite, delta: int) -> bool:
+        """Проверка на возможность прохода в заданном направлении"""
         for sprite in self.platforms:
-            if sprite.rect.left > 1280:
-                break
-            if sprite.rect.left < 0 or type(sprite) is Tree:
+            if sprite.rect.left < 0:
                 continue
+            if sprite.rect.left > WIDTH:
+                break
+
+            char_horizontal_middle = char.rect.left + char.rect.width // 2
+            char_vertical_middle = char.rect.top - char.rect.height // 2
+
+            # Проверяем, что персонаж на уровне платформы
+            if not -sprite.rect.height <= char_vertical_middle - sprite.rect.top <= 0:
+                continue
+
+            # Если игрок идет назад
             if delta > 0:
-                if - sprite.rect.left - sprite.rect.width + char.rect.left + 60 <= delta \
-                        and sprite.rect.top >= char.rect.top - 64 >= sprite.rect.top - sprite.rect.height \
-                        and sprite.rect.left + sprite.rect.width <= char.rect.left + 60:
+                # Если сзади мира нет
+                if self.coord >= 0:
                     return False
+
+                # Проверка на то, что перед нами нет блока
+                if delta >= char_horizontal_middle - sprite.rect.right >= 0:
+                    return False
+
+            # Если игрок идет вперед
             elif delta < 0:
-                if char.rect.left + 60 - delta - sprite.rect.left >= 0 \
-                        and sprite.rect.top >= char.rect.top - 64 >= sprite.rect.top - sprite.rect.height \
-                        and sprite.rect.left >= char.rect.left:
+                # Проверка на то, что перед нами нет блока
+                if char_horizontal_middle - delta >= sprite.rect.left >= char.rect.left:
                     return False
         return True
