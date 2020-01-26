@@ -9,10 +9,9 @@ class BackgroundSprite(Sprite):
     def on_click(self) -> None:
         pass
 
-    def update(self, right):
-        if right:
-            self.rect.left -= 8
-        else:
-            self.rect.left += 8
-        if self.rect.left <= -self.rect.width // 2 or self.rect.left > 0:
+    def update(self, delta):
+        self.rect.left += delta
+        if self.rect.left <= -self.rect.width // 2:
             self.rect.left = 0
+        if self.rect.left > 0:
+            self.rect.left = -1280

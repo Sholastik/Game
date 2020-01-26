@@ -37,3 +37,7 @@ def create_sound(name: str) -> pygame.mixer.Sound:
     """
     fullname = os.path.join('Assets', name)
     return pygame.mixer.Sound(fullname)
+
+
+def compress_image(image: pygame.image, size: tuple) -> pygame.image:
+    return pygame.transform.smoothscale(image, size)
