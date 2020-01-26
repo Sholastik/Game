@@ -203,16 +203,23 @@ class World:
         if self.coord <= -(LEVEL_WIDTH - PROTECTED_RIGHT) * PLATFORM_WIDTH:
             self.change_layer()
 
-    def update_enemies(self) -> None:
+    def update_enemies(self, y) -> None:
+        """Обновление координат врагов"""
         for sprite in self.enemies:
             if sprite.rect.left < 0:
                 continue
             if sprite.rect.left > WIDTH:
                 break
-            delta = -ENEMY_SPEED
-            if sprite.rect.left <= WIDTH // 2:
-                delta = -delta
-            sprite.rect.left += delta
+            if abs(WIDTH // 2 - sprite.rect.right) >= INFELICITY:
+                delta_x = -ENEMY_SPEED
+                if sprite.rect.right < WIDTH // 2:
+                    delta_x = -delta_x
+                sprite.rect.left += delta_x
+            if abs(y - sprite.rect.right) >= INFELICITY:
+                delta_y = -ENEMY_SPEED // 2
+                if sprite.rect.top < y:
+                    delta_y = -delta_y
+                sprite.rect.top += delta_y
             sprite.update_image()
 
     def draw(self, screen: pygame.Surface) -> None:

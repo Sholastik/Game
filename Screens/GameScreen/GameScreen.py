@@ -23,6 +23,7 @@ class GameScreen(Screen):
 
         # Блокировка событий
         self.locked = False
+        self.time_passed = 0.0
 
         play_music(GAME_MUSIC_PATH, loop=True)
 
@@ -52,12 +53,21 @@ class GameScreen(Screen):
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
                 self.state[HORIZONTAL_MOVEMENT] = None
 
-    def back_to_menu(self):
+    def back_to_menu(self) -> None:
         """Возврат в главное меню"""
         self.parent.back_to_menu()
 
+    def draw_timer(self, surface) -> None:
+        """Обновление таймера"""
+        font = pygame.font.SysFont(FONT, FONT_SIZE)
+        text = font.render(str(int(self.time_passed)), True, pygame.color.Color(TIME_COLOR))
+        surface.blit(text, (10, 0))
+
     def pending_updates(self) -> None:
         """Выполнение необходимых изменений"""
+
+        # Обновляем таймер времени
+        self.time_passed += 1 / FPS
 
         # Обновляем таймер возврата в главное меню
         if self.state[MAIN_MENU] > 0:
@@ -68,7 +78,7 @@ class GameScreen(Screen):
 
         # Проверяем, что события не заблокированы
         if not self.locked:
-            self.world.update_enemies()
+            self.world.update_enemies(self.char.rect.top)
             if self.state[HORIZONTAL_MOVEMENT] is not None:
                 delta = RUN_SPEED
                 if self.state[HORIZONTAL_MOVEMENT]:
@@ -120,5 +130,6 @@ class GameScreen(Screen):
         self.sprites.draw(surface)
         self.world.draw(surface)
         self.char.draw(surface)
+        self.draw_timer(surface)
 
         return surface
