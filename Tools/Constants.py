@@ -1,6 +1,6 @@
 SIZE = WIDTH, HEIGHT = 1280, 720
 FPS = 60
-VOLUME = 3 / 100
+VOLUME = 20 / 100
 
 IDLE = "Idle"
 RUN = "Run"
@@ -11,16 +11,22 @@ LEFT = "Left"
 HORIZONTAL_MOVEMENT = "horizontalMovement"
 JUMP = "jump"
 FALLING = "falling"
+MAIN_MENU = "mainMenu"
+TIME_BEFORE_MENU = FPS * 3
 
 ATTACK_COUNT = 15
 RUN_COUNT = 15
 DIED_COUNT = 30
 IDLE_COUNT = 1
+ENEMIES_COUNT = 2
+ENEMIES_ANIMATION_COUNT = 12
 
 JUMP_DURATION = 20
 RUN_SPEED = 7
 FALLING_SPEED = 10
 JUMP_ACCELERATION = -3 / 2
+ENEMY_SPEED = 3
+ENEMY_CHANCE = 10
 
 LEVEL_WIDTH = 200 + 20
 PROTECTED_LEFT = 10
@@ -44,7 +50,7 @@ MIN_TREE = 2
 MAX_TREE = 8
 PLATFORM_WIDTH = PLATFORM_HEIGHT = 128
 INFELICITY = 20
-POSSIBILITY = 35
+TREE_POSSIBILITY = 50
 
 ASSETS_PATH = "Assets"
 CHAR_PATH = "GameScreen/Character"
@@ -56,6 +62,8 @@ START_BACKGROUND_PATH = "StartScreen/bg.png"
 PLATFORMS_PATH = "GameScreen/Platforms"
 GAME_BACKGROUND_PATH = "GameScreen/bg.png"
 GAME_MUSIC_PATH = "GameScreen/music.wav"
+CHARACTER_DEATH_SOUND_PATH = f"{CHAR_PATH}/death.wav"
+SWORD_HIT_SOUND_PATH = f"{CHAR_PATH}/hit.wav"
 
 FLOOR_MIDDLE_PATH = "floor_middle.png"
 FLOOR_LEFT_PATH = "floor_left.png"
@@ -72,6 +80,11 @@ DOUBLE_LEFT_PATH = "double_left.png"
 RIGHT_PATH = "right.png"
 DOUBLE_RIGHT_PATH = "double_right.png"
 TREE_FORMAT = "tree_{}.png"
+ENEMY_PATH = "GameScreen/Enemy"
+ENEMY_DEATH_FORMAT = f"{ENEMY_PATH}/" + "{}/death.wav"
 
 CHAR_LEFT = {ATTACK: [], DIED: [], RUN: [], IDLE: []}
 CHAR_RIGHT = {ATTACK: [], DIED: [], RUN: [], IDLE: []}
+
+ENEMY = {0: [], 1: []}
+ENEMY_DEATH_SOUND = {}

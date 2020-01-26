@@ -3,6 +3,7 @@ from random import randint, choice
 import pygame
 
 from BaseClasses.Sprite import Sprite
+from Screens.GameScreen.Enemy import Enemy
 from Screens.GameScreen.Platform import Platform
 from Screens.GameScreen.Tree import Tree
 from Tools.Constants import *
@@ -19,6 +20,7 @@ class World:
         self.platforms = pygame.sprite.Group()
         self.water = pygame.sprite.Group()
         self.trees = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
 
         self.generate_world()
         self.change_layer()
@@ -80,7 +82,7 @@ class World:
                           LEVEL_WIDTH - PROTECTED_RIGHT - MIN_MOUNTAINS_LENGTH)
 
             length = randint(MIN_MOUNTAINS_COUNT,
-                             min(LEVEL_WIDTH - PROTECTED_RIGHT - pos, MAX_MOUNTAINS_COUNT)
+                             min(LEVEL_WIDTH - PROTECTED_RIGHT - pos + 1, MAX_MOUNTAINS_COUNT)
                              )
 
             # Проверка, что клетки не заняты
@@ -139,6 +141,16 @@ class World:
                     world[layer][pos][0] = LEFT_PATH
                     world[layer][pos + length][0] = RIGHT_PATH
 
+    def generate_enemies(self, world: list) -> None:
+        """Генерация врагов"""
+        for j in range(PROTECTED_LEFT, LEVEL_WIDTH - PROTECTED_RIGHT):
+            for i in range(LEVEL_HEIGHT - 1):
+                if world[i][j][0] not in (None, WATER_PATH, MOUNTAIN_PATH):
+                    val = randint(1, 100)
+                    if val <= ENEMY_CHANCE:
+                        enemy = Enemy(PLATFORM_WIDTH * j, PLATFORM_HEIGHT * i, None)
+                        self.enemies.add(enemy)
+
     @staticmethod
     def add_trees(world: list) -> None:
         """Добавление декораций"""
@@ -147,7 +159,7 @@ class World:
             for j in range(LEVEL_WIDTH):
                 if world[i][j][0] not in (None, WATER_PATH, MOUNTAIN_PATH):
                     val = randint(1, 100)
-                    if val >= POSSIBILITY:
+                    if val <= TREE_POSSIBILITY:
                         world[i][j][1] = TREE_FORMAT.format(randint(MIN_TREE, MAX_TREE))
 
     def change_layer(self) -> None:
@@ -156,6 +168,7 @@ class World:
         self.next = [[[None, None] for _ in range(LEVEL_WIDTH)] for _ in range(LEVEL_HEIGHT)]
         self.generate_world()
         self.create_sprites(self.world)
+        self.generate_enemies(self.next)
 
     def create_sprites(self, world: list) -> None:
         """Создание sprite-ов"""
@@ -181,6 +194,7 @@ class World:
         self.platforms.update(delta)
         self.water.update(delta)
         self.trees.update(delta)
+        self.enemies.update(delta)
 
         # Обновляем сдивг относительно начала
         self.coord += delta
@@ -188,6 +202,18 @@ class World:
         # Проверяем, нужно ли заменить сегмент мира на новый
         if self.coord <= -(LEVEL_WIDTH - PROTECTED_RIGHT) * PLATFORM_WIDTH:
             self.change_layer()
+
+    def update_enemies(self) -> None:
+        for sprite in self.enemies:
+            if sprite.rect.left < 0:
+                continue
+            if sprite.rect.left > WIDTH:
+                break
+            delta = -ENEMY_SPEED
+            if sprite.rect.left <= WIDTH // 2:
+                delta = -delta
+            sprite.rect.left += delta
+            sprite.update_image()
 
     def draw(self, screen: pygame.Surface) -> None:
         """
@@ -197,6 +223,7 @@ class World:
         self.draw_group(self.platforms, screen)
         self.draw_group(self.water, screen)
         self.draw_group(self.trees, screen)
+        self.draw_group(self.enemies, screen)
 
     @staticmethod
     def draw_group(group: pygame.sprite.Group, screen: pygame.Surface) -> None:
@@ -234,7 +261,7 @@ class World:
                     return False
         return True
 
-    def can_go_there(self, char: Sprite, delta: int) -> bool:
+    def can_go_there(self, char: Sprite, delta: int, enemy=False) -> bool:
         """Проверка на возможность прохода в заданном направлении"""
         for sprite in self.platforms:
             if sprite.rect.left < 0:
@@ -245,15 +272,16 @@ class World:
             char_horizontal_middle = char.rect.left + char.rect.width // 2
             char_vertical_middle = char.rect.top - char.rect.height // 2
 
+            if self.coord >= 0 and delta > 0 and not enemy:
+                return False
+
             # Проверяем, что персонаж на уровне платформы
-            if not -sprite.rect.height <= char_vertical_middle - sprite.rect.top <= 0:
+            if not -sprite.rect.height <= char_vertical_middle - sprite.rect.top <= 0 and not enemy:
                 continue
 
             # Если игрок идет назад
             if delta > 0:
                 # Если сзади мира нет
-                if self.coord >= 0:
-                    return False
 
                 # Проверка на то, что перед нами нет блока
                 if delta >= char_horizontal_middle - sprite.rect.right >= 0:
@@ -265,3 +293,17 @@ class World:
                 if char_horizontal_middle - delta >= sprite.rect.left >= char.rect.left:
                     return False
         return True
+
+    def kill_enemies(self, char: Sprite) -> None:
+        """Убиваем врагов, попавших в прямоугольник пересечения"""
+        for enemy in self.enemies:
+            if pygame.sprite.collide_rect(enemy, char):
+                enemy.kill()
+                enemy.on_death()
+
+    def is_killed_by_enemies(self, char: Sprite) -> bool:
+        """Игрок умирает, если маска врага пересекла маску игрока"""
+        for enemy in self.enemies:
+            if pygame.sprite.collide_mask(enemy, char):
+                return True
+        return False

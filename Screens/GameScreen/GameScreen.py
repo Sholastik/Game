@@ -19,7 +19,7 @@ class GameScreen(Screen):
         self.world = World()
 
         # Игровые события
-        self.state = {HORIZONTAL_MOVEMENT: None, FALLING: False, JUMP: 0, ATTACK: 0}
+        self.state = {HORIZONTAL_MOVEMENT: None, FALLING: False, JUMP: 0, ATTACK: 0, MAIN_MENU: -1}
 
         # Блокировка событий
         self.locked = False
@@ -43,6 +43,7 @@ class GameScreen(Screen):
             elif event.key == pygame.K_SPACE:
                 self.state[ATTACK] = ATTACK_COUNT
                 self.char.item = ATTACK
+                self.char.play_sword_sound()
                 self.state[HORIZONTAL_MOVEMENT] = None
             else:
                 return
@@ -51,12 +52,23 @@ class GameScreen(Screen):
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
                 self.state[HORIZONTAL_MOVEMENT] = None
 
+    def back_to_menu(self):
+        """Возврат в главное меню"""
+        self.parent.back_to_menu()
+
     def pending_updates(self) -> None:
         """Выполнение необходимых изменений"""
 
+        # Обновляем таймер возврата в главное меню
+        if self.state[MAIN_MENU] > 0:
+            self.state[MAIN_MENU] -= 1
+        # Возврат в главное меню
+        if self.state[MAIN_MENU] == 0:
+            self.back_to_menu()
+
         # Проверяем, что события не заблокированы
         if not self.locked:
-
+            self.world.update_enemies()
             if self.state[HORIZONTAL_MOVEMENT] is not None:
                 delta = RUN_SPEED
                 if self.state[HORIZONTAL_MOVEMENT]:
@@ -82,20 +94,24 @@ class GameScreen(Screen):
             elif self.state[HORIZONTAL_MOVEMENT] is None and self.state[ATTACK] == 0:
                 self.char.item = IDLE
 
-            self.check_character_in_water()
-
             if self.state[ATTACK] > 0:
+                self.world.kill_enemies(self.char)
                 self.state[ATTACK] -= 1
+
+            self.check_character()
+
         # Обновляем анимацию
         self.char.update_image()
 
-    def check_character_in_water(self) -> None:
-        """Проверка на то, что персонаж в воде"""
-        if self.world.in_water(self.char):
-            # Блокируем события и меняем анимацию
+    def check_character(self) -> None:
+        """Проверка на то, что персонаж в воде или убит врагом"""
+        if self.world.in_water(self.char) or self.world.is_killed_by_enemies(self.char):
+            # Блокируем события и меняем анимацию, возвращаем игрока в главное меню
             self.locked = True
+            self.char.on_death()
             self.char.item = DIED
             self.char.frame = -1
+            self.state[MAIN_MENU] = TIME_BEFORE_MENU
 
     def create_surface(self) -> pygame.Surface:
         """Создание экрана"""

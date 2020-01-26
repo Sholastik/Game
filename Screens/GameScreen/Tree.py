@@ -6,10 +6,9 @@ from Tools.Constants import HEIGHT, PLATFORM_HEIGHT, PLATFORMS_PATH
 class Tree(Sprite):
     """Sprite дерева"""
 
-    def __init__(self, path: str, parent: Screen, x, y):
-        super().__init__(f"{PLATFORMS_PATH}/{path}", parent)
-        self.rect.left = x
+    def __init__(self, path: str, parent: Screen, x: int, y: int) -> None:
+        super().__init__(f"{PLATFORMS_PATH}/{path}", parent, left=x)
         self.rect.top = HEIGHT - y - self.rect.height - PLATFORM_HEIGHT
 
-    def update(self, delta):
+    def update(self, delta: int) -> None:
         self.rect.left += delta

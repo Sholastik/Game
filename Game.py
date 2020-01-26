@@ -1,6 +1,6 @@
 import pygame
 
-import BaseClasses.Screen
+from Screens.GameScreen.GameScreen import GameScreen
 from Screens.StartScreen.StartScreen import StartScreen
 from Tools.Constants import *
 from Tools.Tools import create_sound, load_image
@@ -13,8 +13,6 @@ class Game:
         """Инициализация игры, загрузка необходимых файлов"""
         pygame.init()
 
-        # Подавление предупреждения
-        self.click_sound = self.current_screen = None
         self.screen = pygame.display.set_mode(SIZE)
 
         self.current_screen = StartScreen(self.screen, parent=self)
@@ -25,8 +23,15 @@ class Game:
         self.load_char_images(RUN, RUN_COUNT)
         self.load_char_images(IDLE, IDLE_COUNT)
         self.load_char_images(DIED, DIED_COUNT)
+        self.load_enemies()
+        self.load_sounds()
 
         self.loop()
+
+    @staticmethod
+    def load_sounds():
+        for index in range(ENEMIES_COUNT):
+            ENEMY_DEATH_SOUND[index] = create_sound(ENEMY_DEATH_FORMAT.format(index))
 
     @staticmethod
     def load_char_images(token: str, count: int) -> None:
@@ -35,9 +40,20 @@ class Game:
             CHAR_LEFT[token].append(load_image(f"{CHAR_PATH}/{LEFT}/{token}/{index}.png"))
             CHAR_RIGHT[token].append(load_image(f"{CHAR_PATH}/{RIGHT}/{token}/{index}.png"))
 
-    def change_screen(self, screen: BaseClasses.Screen) -> None:
+    @staticmethod
+    def load_enemies() -> None:
+        """Загрузка анимаций врагов"""
+        for enemy in range(ENEMIES_COUNT):
+            for index in range(ENEMIES_ANIMATION_COUNT):
+                ENEMY[enemy].append(load_image(f"{ENEMY_PATH}/{enemy}/{index}.png"))
+
+    def start_game(self) -> None:
         """Замена текущего экрана"""
-        self.current_screen = screen
+        self.current_screen = GameScreen(self.screen, parent=self)
+
+    def back_to_menu(self) -> None:
+        """Возврат в меню"""
+        self.current_screen = StartScreen(self.screen, parent=self)
 
     def loop(self) -> None:
         """Обработка событий"""
