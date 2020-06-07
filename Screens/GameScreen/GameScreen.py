@@ -28,7 +28,7 @@ class GameScreen(Screen):
         play_music(GAME_MUSIC_PATH, loop=True)
 
     def notify(self, event: pygame.event) -> None:
-        """Получение событий от Game"""
+        """Получение и обработка событий от Game"""
 
         # Проверяем, что события не заблокированы
         if self.locked:
@@ -36,28 +36,38 @@ class GameScreen(Screen):
 
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
+                # Передвижение по горизонтали
                 self.state[HORIZONTAL_MOVEMENT] = self.char.right = event.key == pygame.K_RIGHT
                 self.char.item = RUN
             elif event.key == pygame.K_UP and self.state[JUMP] == 0 and not self.state[FALLING]:
+                # Прыжок
                 self.state[JUMP] = JUMP_DURATION
                 self.char.item = RUN
             elif event.key == pygame.K_SPACE:
+                # Атака мечом
                 self.state[ATTACK] = ATTACK_COUNT
                 self.char.item = ATTACK
                 self.char.play_sword_sound()
                 self.state[HORIZONTAL_MOVEMENT] = None
             else:
                 return
+            # Происходит смена состояния персонажа, сбрасываем индекс кадра анимации
             self.char.frame = -1
         elif event.type == pygame.KEYUP:
-            if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
+            # После прекращения нажатия на кнопку персонаж перестает двигаться
+            if event.key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d):
                 self.state[HORIZONTAL_MOVEMENT] = None
+
+    def notify_click(self, pos: tuple) -> None:
+        """Нажатие кнопкой мыши"""
+        # Симуляция нажатия пробела
+        self.notify(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE))
 
     def back_to_menu(self) -> None:
         """Возврат в главное меню"""
         self.parent.back_to_menu()
 
-    def draw_timer(self, surface) -> None:
+    def draw_timer(self, surface: pygame.Surface) -> None:
         """Обновление таймера"""
         font = pygame.font.SysFont(FONT, FONT_SIZE)
         text = font.render(str(int(self.time_passed)), True, pygame.color.Color(TIME_COLOR))
@@ -72,6 +82,7 @@ class GameScreen(Screen):
         # Обновляем таймер возврата в главное меню
         if self.state[MAIN_MENU] > 0:
             self.state[MAIN_MENU] -= 1
+
         # Возврат в главное меню
         if self.state[MAIN_MENU] == 0:
             self.back_to_menu()
@@ -109,6 +120,11 @@ class GameScreen(Screen):
                 self.state[ATTACK] -= 1
 
             self.check_character()
+        else:
+            # Даже если персонаж уже умер, он не должен продолжать висеть в воздухе
+            self.state[FALLING] = self.world.should_fall(self.char)
+            if self.state[FALLING]:
+                self.char.update_pos(FALLING_SPEED)
 
         # Обновляем анимацию
         self.char.update_image()

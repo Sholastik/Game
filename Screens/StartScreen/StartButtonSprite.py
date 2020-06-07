@@ -5,7 +5,6 @@ from Tools.Constants import START_BUTTON_PATH
 
 class StartButtonSprite(Sprite):
     """Кнопка начать игру"""
-
     def __init__(self, parent: Screen) -> None:
         super(StartButtonSprite, self).__init__(START_BUTTON_PATH, parent, left=640, top=480, center=True)
 

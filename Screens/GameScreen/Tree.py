@@ -11,4 +11,5 @@ class Tree(Sprite):
         self.rect.top = HEIGHT - y - self.rect.height - PLATFORM_HEIGHT
 
     def update(self, delta: int) -> None:
+        """Перемещение по горизонтали"""
         self.rect.left += delta

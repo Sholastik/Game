@@ -203,7 +203,7 @@ class World:
         if self.coord <= -(LEVEL_WIDTH - PROTECTED_RIGHT) * PLATFORM_WIDTH:
             self.change_layer()
 
-    def update_enemies(self, y) -> None:
+    def update_enemies(self, y: int) -> None:
         """Обновление координат врагов"""
         for sprite in self.enemies:
             if sprite.rect.left < 0:
@@ -268,7 +268,7 @@ class World:
                     return False
         return True
 
-    def can_go_there(self, char: Sprite, delta: int, enemy=False) -> bool:
+    def can_go_there(self, char: Sprite, delta: int, enemy: bool = False) -> bool:
         """Проверка на возможность прохода в заданном направлении"""
         for sprite in self.platforms:
             if sprite.rect.left < 0:

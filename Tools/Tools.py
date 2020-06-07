@@ -6,16 +6,18 @@ from Tools.Constants import ASSETS_PATH, VOLUME
 
 
 def get_path(path: str) -> str:
-    """Получение пути до файла"""
+    """Получение пути до файла
+    param path: Путь до картинки в папке Assets
+    """
     return os.path.join(ASSETS_PATH, path)
 
 
-def load_image(name: str) -> pygame.image:
+def load_image(path: str) -> pygame.image:
     """
     Загрузка картинки
-    :param name: Путь до картинки в папке Assets
+    :param path: Путь до картинки в папке Assets
     """
-    fullname = get_path(name)
+    fullname = get_path(path)
     image = pygame.image.load(fullname).convert_alpha()
 
     return image
@@ -38,10 +40,10 @@ def stop_music() -> None:
     pygame.mixer.music.stop()
 
 
-def create_sound(name: str) -> pygame.mixer.Sound:
+def create_sound(path: str) -> pygame.mixer.Sound:
     """
     Создание звука
-    :param name: путь до звука
+    :param path: путь до звука
     """
-    fullname = get_path(name)
+    fullname = get_path(path)
     return pygame.mixer.Sound(fullname)

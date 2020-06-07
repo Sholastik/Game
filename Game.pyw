@@ -15,6 +15,9 @@ class Game:
 
         self.screen = pygame.display.set_mode(SIZE)
 
+        pygame.display.set_caption(APP_NAME)
+        pygame.display.set_icon(load_image(APP_ICON_PATH))
+
         self.current_screen = StartScreen(self.screen, parent=self)
         self.click_sound = create_sound(CLICK_SOUND_PATH)
         pygame.mouse.set_cursor(*pygame.cursors.tri_left)
@@ -24,12 +27,13 @@ class Game:
         self.load_char_images(IDLE, IDLE_COUNT)
         self.load_char_images(DIED, DIED_COUNT)
         self.load_enemies()
-        self.load_sounds()
+        self.load_enemy_sounds()
 
         self.loop()
 
     @staticmethod
-    def load_sounds():
+    def load_enemy_sounds() -> None:
+        """Загрузка звуков врагов"""
         for index in range(ENEMIES_COUNT):
             ENEMY_DEATH_SOUND[index] = create_sound(ENEMY_DEATH_FORMAT.format(index))
 

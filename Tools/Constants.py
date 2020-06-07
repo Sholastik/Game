@@ -2,6 +2,9 @@ SIZE = WIDTH, HEIGHT = 1280, 720
 FPS = 60
 VOLUME = 50 / 100
 
+APP_NAME = "King of Jungle"
+APP_ICON_PATH = "icon.png"
+
 IDLE = "Idle"
 RUN = "Run"
 DIED = "Died"

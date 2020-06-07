@@ -10,7 +10,6 @@ from Tools.Tools import play_music, stop_music
 
 class StartScreen(Screen):
     """Меню игры"""
-
     def __init__(self, screen: pygame.display, parent):
         sprites = pygame.sprite.Group(
             BackgroundSprite(self),

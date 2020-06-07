@@ -8,8 +8,11 @@ class BackgroundSprite(Sprite):
     def __init__(self, parent: Screen) -> None:
         super(BackgroundSprite, self).__init__(GAME_BACKGROUND_PATH, parent)
 
-    def update(self, delta):
-        """Зацикливание фонового изображения"""
+    def update(self, delta: int) -> None:
+        """
+        Зацикливание фонового изображения
+        :param delta: сдвиг персонажа относительно оси OX
+        """
         self.rect.left += delta
         if self.rect.left <= -self.rect.width // 2:
             self.rect.left = 0
